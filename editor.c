@@ -143,7 +143,7 @@ int main(int argc, char **argv) {
             default:
                 addch(ch); // display the character
                 x++;
-                if (x >= linelen[y - 1])
+                if (x > linelen[y - 1])
                     linelen[y - 1] = x;
                 break;
         }
