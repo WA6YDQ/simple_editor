@@ -21,11 +21,9 @@ void logs(char* msg) {
     fclose(f);
 }
 void read_file() {
-    FILE *f;
+    FILE *f = NULL;
     if (filename) {
         f = fopen(filename, "r");
-    } else {
-        f = fopen("temp", "r");
     }
     if (f == NULL) {
         logs("qq\n");
@@ -34,6 +32,10 @@ void read_file() {
     for (int i = 0; i < 1024 && fgets(lines[i], 1024, f) != NULL; i++){
         logs(lines[i]);
         linelen[i] = strlen(lines[i]);
+        if (lines[i][linelen[i] - 1] == '\n') {
+            lines[i][linelen[i] - 1] = 0;
+            linelen[i]--;
+        }
     }
     fclose(f);
 }
@@ -53,16 +55,26 @@ void save_content() {
         }
     }
 }
+void fill_back(int y, int x) {
+    if (x >= linelen[y - 1])
+        return;
+    int i;
+    for (i = x; i < linelen[y - 1] + 1; i++) {
+        char ch = mvinch(y, i + 1) & A_CHARTEXT;
+        mvaddch(y, i, ch);
+    }
+    linelen[y - 1]--;
+}
 void write_file() {
     FILE *f;
     if (filename) {
         f = fopen(filename, "w");
     } else {
-        f = fopen("temp", "w");
+        return;
     }
     for (int i = 0; i <= linenum && lines[i][0] != 0; i++) {
         if (linelen[i] > 0) {
-            lines[i][linelen[i] - 1] = 0;
+            lines[i][linelen[i]] = 0;
             fputs(lines[i], f);
         }
         fputs("\n", f);
@@ -112,16 +124,8 @@ int main(int argc, char **argv) {
             case 127:
             case '\b':
                 x--;
-                mvaddch(y, x, ' '); // delete a character
-                if (x == linelen[y - 1] - 1)
-                    linelen[y - 1]--;
-                break;
             case KEY_DC:// DEL
-                addch(' '); // delete a character
-                if (x == linelen[y - 1] - 1){
-                    linelen[y - 1]--;
-                    x--;
-                }
+                fill_back(y, x);
                 break;
             case 27: // [ESC]
                 // close curses mode, must called before system(), system calls
@@ -130,10 +134,16 @@ int main(int argc, char **argv) {
                 endwin();
                 write_file();
                 return 0;
+            case KEY_HOME:
+                x = 1;
+                break;
+            case KEY_END:
+                x = linelen[y - 1];
+                break;
             default:
                 addch(ch); // display the character
                 x++;
-                if (x > linelen[y - 1])
+                if (x >= linelen[y - 1])
                     linelen[y - 1] = x;
                 break;
         }
