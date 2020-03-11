@@ -56,7 +56,7 @@ void save_content() {
     }
 }
 void fill_back(int y, int x) {
-    if (x >= linelen[y - 1])
+    if (x > linelen[y - 1])
         return;
     int i;
     for (i = x; i < linelen[y - 1] + 1; i++) {
@@ -142,9 +142,9 @@ int main(int argc, char **argv) {
                 break;
             default:
                 addch(ch); // display the character
-                x++;
                 if (x > linelen[y - 1])
                     linelen[y - 1] = x;
+                x++;
                 break;
         }
         move(y, x);
